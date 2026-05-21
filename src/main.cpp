@@ -1,7 +1,7 @@
 // Copyright 2022 NNTU-CS
 #include <iostream>
 #include <fstream>
-#include <cstdlib>
+#include <cstdint>
 #include <ctime>
 #include "train.h"
 
@@ -13,10 +13,10 @@ static int runTrain(int n, bool lightOn) {
   return t.getOpCount();
 }
 
-static int runTrainRandom(int n) {
+static int runTrainRandom(int n, unsigned int *seed) {
   Train t;
   for (int i = 0; i < n; ++i)
-    t.addCar(rand() % 2 == 0);
+    t.addCar(rand_r(seed) % 2 == 0);
   t.getLength();
   return t.getOpCount();
 }
@@ -30,7 +30,7 @@ int main() {
     std::cout << train.getLength() << std::endl;
     std::cout << train.getOpCount() << std::endl;
   }
-  srand(static_cast<unsigned>(time(nullptr)));
+  unsigned int seed = static_cast<unsigned int>(time(nullptr));
   const int N_MIN = 2;
   const int N_MAX = 500;
   const int STEP = 2;
@@ -40,9 +40,9 @@ int main() {
   for (int n = N_MIN; n <= N_MAX; n += STEP) {
     int opsOff = runTrain(n, false);
     int opsOn = runTrain(n, true);
-    long long sumRand = 0;
+    int64_t sumRand = 0;
     for (int t = 0; t < TRIALS; ++t)
-      sumRand += runTrainRandom(n);
+      sumRand += runTrainRandom(n, &seed);
     int opsRand = static_cast<int>(sumRand / TRIALS);
     csv << n << "," << opsOff << "," << opsOn << "," << opsRand << "\n";
   }
