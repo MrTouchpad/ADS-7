@@ -1,15 +1,55 @@
-// Copyright 2022 NNTU-CS
-#include <iostream>
+// Copyright 2021 NNTU-CS
 #include "train.h"
 
-int main() {
-  Train train;
-  int count = 60; // кол-во вагонов
+Train::Train() : countOp(0), first(nullptr) {}
 
-  while (count--)
-    train.addCar(false);
+Train::~Train() {
+  if (!first) return;
+  Car *cur = first;
+  Car *nxt = cur->next;
+  while (nxt != first) {
+    Car *tmp = nxt->next;
+    delete cur;
+    cur = nxt;
+    nxt = tmp;
+  }
+  delete cur;
+  first = nullptr;
+}
 
-  std::cout << train.getLength() << std::endl;
-  std::cout << train.getOpCount() << std::endl;
-  return 0;
+void Train::addCar(bool light) {
+  Car *car = new Car{light, nullptr, nullptr};
+  if (!first) {
+    car->next = car;
+    car->prev = car;
+    first = car;
+  } else {
+    Car *last = first->prev;
+    last->next = car;
+    car->prev = last;
+    car->next = first;
+    first->prev = car;
+  }
+}
+
+int Train::getLength() {
+  if (!first) return 0;
+  countOp = 0;
+  bool startWasOn = first->light;
+  first->light = false;
+  Car *cur = first->next;
+  int len = 1;
+  while (cur != first) {
+    countOp++;
+    if (!cur->light)
+      cur->light = true;
+    len++;
+    cur = cur->next;
+  }
+  first->light = startWasOn;
+  return len;
+}
+
+int Train::getOpCount() {
+  return countOp;
 }
