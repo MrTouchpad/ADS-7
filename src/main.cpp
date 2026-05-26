@@ -1,51 +1,40 @@
-// Copyright 2022 NNTU-CS
-#include <iostream>
-#include <fstream>
-#include <cstdint>
-#include <ctime>
+// Copyright 2021 NNTU-CS
 #include "train.h"
 
-static int runTrain(int n, bool lightOn) {
-  Train t;
-  for (int i = 0; i < n; ++i)
-    t.addCar(lightOn);
-  t.getLength();
-  return t.getOpCount();
+Train::Train() : countOp(0), first(nullptr) {}
+
+void Train::addCar(bool light) {
+  Car *car = new Car{light, nullptr, nullptr};
+  if (!first) {
+    car->next = car;
+    car->prev = car;
+    first = car;
+  } else {
+    Car *last = first->prev;
+    last->next = car;
+    car->prev = last;
+    car->next = first;
+    first->prev = car;
+  }
 }
 
-static int runTrainRandom(int n, unsigned int *seed) {
-  Train t;
-  for (int i = 0; i < n; ++i)
-    t.addCar(rand_r(seed) % 2 == 0);
-  t.getLength();
-  return t.getOpCount();
+int Train::getLength() {
+  if (!first) return 0;
+  bool startWasOn = first->light;
+  first->light = false;
+  Car *cur = first->next;
+  int len = 1;
+  while (cur != first) {
+    countOp++;
+    if (!cur->light)
+      cur->light = true;
+    len++;
+    cur = cur->next;
+  }
+  first->light = startWasOn;
+  return len;
 }
 
-int main() {
-  {
-    Train train;
-    int count = 60;
-    while (count--)
-      train.addCar(false);
-    std::cout << train.getLength() << std::endl;
-    std::cout << train.getOpCount() << std::endl;
-  }
-  unsigned int seed = static_cast<unsigned int>(time(nullptr));
-  const int N_MIN = 2;
-  const int N_MAX = 500;
-  const int STEP = 2;
-  const int TRIALS = 10;
-  std::ofstream csv("result/experiment.csv");
-  csv << "n,ops_off,ops_on,ops_rand\n";
-  for (int n = N_MIN; n <= N_MAX; n += STEP) {
-    int opsOff = runTrain(n, false);
-    int opsOn = runTrain(n, true);
-    int64_t sumRand = 0;
-    for (int t = 0; t < TRIALS; ++t)
-      sumRand += runTrainRandom(n, &seed);
-    int opsRand = static_cast<int>(sumRand / TRIALS);
-    csv << n << "," << opsOff << "," << opsOn << "," << opsRand << "\n";
-  }
-  csv.close();
-  return 0;
+int Train::getOpCount() {
+  return countOp;
 }
