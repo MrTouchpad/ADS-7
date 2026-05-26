@@ -23,17 +23,17 @@ int Train::getLength() {
   countOp = 0;
   bool startWasOn = first->light;
   first->light = false;
-  Car *cur = first->next;
+  Car *cur = first;
   int len = 1;
-  while (cur != first) {
+  while (cur->next != first) {
     countOp++;
+    cur = cur->next;
     if (!cur->light)
       cur->light = true;
     len++;
-    cur = cur->next;
   }
-  cur = first->next;
-  while (cur->light) {
+  cur = first;
+  while (cur->next->light) {
     countOp++;
     cur = cur->next;
   }
