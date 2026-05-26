@@ -3,7 +3,6 @@
 #include <ctime>
 #include <iostream>
 #include "train.h"
-
 int main() {
   Train train;
   int count = 60;
